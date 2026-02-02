@@ -98,7 +98,7 @@ exports.verifyOtp = async (req, res) => {
        ADMIN EMAIL
     =============================== */
     await sendEmail({
-      to: "chandanpms@gmail.com",
+      to: "chandangomia2812@gmail.com",
       subject: "New Verified Lead",
       html: `
         <h3>New Verified Lead</h3>

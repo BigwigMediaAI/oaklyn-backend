@@ -9,11 +9,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+app.use("/api/lead", require("./routes/lead.route"));
+app.use("/blog", require("./routes/blog.route"));
+
 app.use("/", (req, res) => {
   res.send("API LIVE🚀");
 });
-
-app.use("/api/lead", require("./routes/lead.route"));
 
 // Start server
 app.listen(process.env.PORT, async () => {
