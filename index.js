@@ -12,6 +12,7 @@ app.use(cors());
 app.use("/api/lead", require("./routes/lead.route"));
 app.use("/blog", require("./routes/blog.route"));
 app.use("/featuredProperty", require("./routes/featuredProperty.route"));
+app.use("/property", require("./routes/property.route"));
 
 app.use("/", (req, res) => {
   res.send("API LIVE🚀");
