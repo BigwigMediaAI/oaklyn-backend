@@ -1,10 +1,9 @@
 const SibApiV3Sdk = require("sib-api-v3-sdk");
-const axios = require("axios");
 
 const client = SibApiV3Sdk.ApiClient.instance;
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
-const sendEmail = async ({ to, subject, html, attachments = [] }) => {
+const sendEmail = async ({ to, subject, html, attachments }) => {
   try {
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
@@ -16,14 +15,19 @@ const sendEmail = async ({ to, subject, html, attachments = [] }) => {
       to: [{ email: to }],
       subject,
       htmlContent: html,
-      attachment: attachments, // 👈 THIS is the key
     };
+
+    // ✅ Only add attachment if it exists and has items
+    if (attachments && attachments.length > 0) {
+      sendSmtpEmail.attachment = attachments;
+    }
 
     await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    console.log(`✅ Email sent to ${to} successfully via Brevo`);
+    console.log(`✅ Email sent to ${to}`);
   } catch (error) {
-    console.error("❌ Failed to send email via Brevo:", error);
+    console.error("❌ Brevo Email Error:", error?.response?.body || error);
+    throw error;
   }
 };
 
