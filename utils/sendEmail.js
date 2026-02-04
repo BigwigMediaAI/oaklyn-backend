@@ -1,11 +1,10 @@
 const SibApiV3Sdk = require("sib-api-v3-sdk");
-require("dotenv").config();
+const axios = require("axios");
 
-// Initialize client
 const client = SibApiV3Sdk.ApiClient.instance;
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, attachments = [] }) => {
   try {
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
@@ -17,6 +16,7 @@ const sendEmail = async ({ to, subject, html }) => {
       to: [{ email: to }],
       subject,
       htmlContent: html,
+      attachment: attachments, // 👈 THIS is the key
     };
 
     await apiInstance.sendTransacEmail(sendSmtpEmail);
