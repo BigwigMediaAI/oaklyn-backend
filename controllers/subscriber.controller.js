@@ -5,7 +5,6 @@ const sendEmail = require("../utils/sendEmail");
  * @desc   Subscribe Email
  * @route  POST /api/subscribers
  */
-
 exports.subscribeEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -33,32 +32,34 @@ exports.subscribeEmail = async (req, res) => {
       subscriber = await Subscriber.create({ email });
     }
 
-    const unsubscribeUrl = `${process.env.BACKEND_URL}/api/subscribers/unsubscribe/${subscriber.unsubscribeToken}`;
+    const unsubscribeUrl = `${process.env.BACKEND_URL}/subscribers/unsubscribe/${subscriber.unsubscribeToken}`;
 
-    await sendEmail({
-      to: email,
-      subject: "Welcome to Oaklyn Newsletter 🏡",
-      html: `
-        <h2>Welcome to Oaklyn Real Estates</h2>
-        <p>Thanks for subscribing to our newsletter.</p>
-        <p>You’ll receive latest property updates & offers.</p>
+    // ✅ Email should NOT break subscription
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Welcome to Oaklyn Newsletter 🏡",
+        html: `
+          <h2>Welcome to Oaklyn Real Estates</h2>
+          <p>Thanks for subscribing to our newsletter.</p>
 
-        <hr />
-
-        <p style="font-size:12px;color:#666">
-          Don’t want these emails?
-          <a href="${unsubscribeUrl}" target="_blank">
-            Unsubscribe here
-          </a>
-        </p>
-
-        <p>– Team Oaklyn Real Estates</p>
-      `,
-    });
+          <hr />
+          <p style="font-size:12px;color:#666">
+            Don’t want these emails?
+            <a href="${unsubscribeUrl}" target="_blank">
+              Unsubscribe here
+            </a>
+          </p>
+          <p>– Team Oaklyn Real Estates</p>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
+    }
 
     res.status(201).json({
       success: true,
-      message: "Subscribed successfully. Email sent.",
+      message: "Subscribed successfully",
       data: subscriber,
     });
   } catch (error) {

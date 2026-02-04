@@ -10,12 +10,10 @@ const subscriberSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-
     isActive: {
       type: Boolean,
       default: true,
     },
-
     unsubscribeToken: {
       type: String,
       unique: true,
@@ -24,12 +22,11 @@ const subscriberSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Generate token only once
-subscriberSchema.pre("save", function (next) {
+// ✅ FIXED pre-save hook (NO next)
+subscriberSchema.pre("save", function () {
   if (!this.unsubscribeToken) {
     this.unsubscribeToken = crypto.randomBytes(32).toString("hex");
   }
-  next();
 });
 
 module.exports = mongoose.model("Subscriber", subscriberSchema);
