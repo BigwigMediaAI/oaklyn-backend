@@ -1,9 +1,11 @@
 const Subscriber = require("../modals/subscriber.modal");
+const sendEmail = require("../utils/sendEmail");
 
 /**
  * @desc   Subscribe Email
  * @route  POST /api/subscribers
  */
+
 exports.subscribeEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -15,32 +17,48 @@ exports.subscribeEmail = async (req, res) => {
       });
     }
 
-    const existingSubscriber = await Subscriber.findOne({ email });
+    let subscriber = await Subscriber.findOne({ email });
 
-    // If already exists but inactive → re-activate
-    if (existingSubscriber) {
-      if (!existingSubscriber.isActive) {
-        existingSubscriber.isActive = true;
-        await existingSubscriber.save();
-
-        return res.status(200).json({
-          success: true,
-          message: "Subscription re-activated",
-          data: existingSubscriber,
+    if (subscriber) {
+      if (!subscriber.isActive) {
+        subscriber.isActive = true;
+        await subscriber.save();
+      } else {
+        return res.status(409).json({
+          success: false,
+          message: "Email already subscribed",
         });
       }
-
-      return res.status(409).json({
-        success: false,
-        message: "Email already subscribed",
-      });
+    } else {
+      subscriber = await Subscriber.create({ email });
     }
 
-    const subscriber = await Subscriber.create({ email });
+    const unsubscribeUrl = `${process.env.BACKEND_URL}/api/subscribers/unsubscribe/${subscriber.unsubscribeToken}`;
+
+    await sendEmail({
+      to: email,
+      subject: "Welcome to Oaklyn Newsletter 🏡",
+      html: `
+        <h2>Welcome to Oaklyn Real Estates</h2>
+        <p>Thanks for subscribing to our newsletter.</p>
+        <p>You’ll receive latest property updates & offers.</p>
+
+        <hr />
+
+        <p style="font-size:12px;color:#666">
+          Don’t want these emails?
+          <a href="${unsubscribeUrl}" target="_blank">
+            Unsubscribe here
+          </a>
+        </p>
+
+        <p>– Team Oaklyn Real Estates</p>
+      `,
+    });
 
     res.status(201).json({
       success: true,
-      message: "Subscribed successfully",
+      message: "Subscribed successfully. Email sent.",
       data: subscriber,
     });
   } catch (error) {
@@ -100,6 +118,44 @@ exports.unsubscribeEmail = async (req, res) => {
       success: false,
       message: "Server error",
     });
+  }
+};
+
+/**
+ * @desc   Unsubscribe via secure token
+ * @route  GET /api/subscribers/unsubscribe/:token
+ */
+exports.unsubscribeByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const subscriber = await Subscriber.findOne({
+      unsubscribeToken: token,
+    });
+
+    if (!subscriber) {
+      return res.send(`
+        <h3>Invalid unsubscribe link</h3>
+        <p>This link is not valid or already used.</p>
+      `);
+    }
+
+    if (!subscriber.isActive) {
+      return res.send(`
+        <h3>Already unsubscribed</h3>
+        <p>You are already unsubscribed.</p>
+      `);
+    }
+
+    subscriber.isActive = false;
+    await subscriber.save();
+
+    res.send(`
+      <h2>Unsubscribed Successfully</h2>
+      <p>${subscriber.email} will no longer receive emails from Oaklyn.</p>
+    `);
+  } catch (error) {
+    res.send("<h3>Something went wrong</h3>");
   }
 };
 
