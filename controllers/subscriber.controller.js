@@ -17,7 +17,19 @@ exports.subscribeEmail = async (req, res) => {
 
     const existingSubscriber = await Subscriber.findOne({ email });
 
+    // If already exists but inactive → re-activate
     if (existingSubscriber) {
+      if (!existingSubscriber.isActive) {
+        existingSubscriber.isActive = true;
+        await existingSubscriber.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "Subscription re-activated",
+          data: existingSubscriber,
+        });
+      }
+
       return res.status(409).json({
         success: false,
         message: "Email already subscribed",
@@ -26,7 +38,7 @@ exports.subscribeEmail = async (req, res) => {
 
     const subscriber = await Subscriber.create({ email });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Subscribed successfully",
       data: subscriber,
@@ -62,8 +74,8 @@ exports.getAllSubscribers = async (req, res) => {
 };
 
 /**
- * @desc   Unsubscribe Email
- * @route  DELETE /api/subscribers/:id
+ * @desc   Soft Unsubscribe (Inactive)
+ * @route  PATCH /api/subscribers/:id/unsubscribe
  */
 exports.unsubscribeEmail = async (req, res) => {
   try {
@@ -81,9 +93,39 @@ exports.unsubscribeEmail = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Unsubscribed successfully",
+      message: "Subscriber marked inactive",
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+/**
+ * @desc   HARD DELETE subscriber (Admin)
+ * @route  DELETE /api/subscribers/:id
+ */
+exports.deleteSubscriber = async (req, res) => {
+  try {
+    const subscriber = await Subscriber.findById(req.params.id);
+
+    if (!subscriber) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscriber not found",
+      });
+    }
+
+    await subscriber.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Subscriber deleted permanently",
+    });
+  } catch (error) {
+    console.error("Delete Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",

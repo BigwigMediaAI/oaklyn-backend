@@ -3,12 +3,17 @@ const {
   subscribeEmail,
   getAllSubscribers,
   unsubscribeEmail,
+  deleteSubscriber,
 } = require("../controllers/subscriber.controller");
 
 const router = express.Router();
 
+// Public
 router.post("/", subscribeEmail);
-router.get("/", getAllSubscribers); // admin
-router.delete("/:id", unsubscribeEmail);
+
+// Admin
+router.get("/", getAllSubscribers);
+router.patch("/:id/unsubscribe", unsubscribeEmail); // soft delete
+router.delete("/:id", deleteSubscriber); // hard delete
 
 module.exports = router;
