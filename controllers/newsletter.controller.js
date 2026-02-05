@@ -66,7 +66,7 @@ exports.createAndSendNewsletter = async (req, res) => {
 
     // 5️⃣ Send emails
     for (const sub of subscribers) {
-      const unsubscribeUrl = `${process.env.BACKEND_URL}/api/subscribers/unsubscribe/${sub.unsubscribeToken}`;
+      const unsubscribeUrl = `${process.env.BACKEND_URL}/subscribers/unsubscribe/${sub.unsubscribeToken}`;
 
       const emailHtml = `
         ${content}

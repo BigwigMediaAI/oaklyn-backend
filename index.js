@@ -15,6 +15,7 @@ app.use("/featuredProperty", require("./routes/featuredProperty.route"));
 app.use("/property", require("./routes/property.route"));
 app.use("/subscribers", require("./routes/subscriber.route"));
 app.use("/newsletter", require("./routes/newsletter.route"));
+app.use("/testimonial", require("./routes/testimonial.route"));
 
 app.use("/", (req, res) => {
   res.send("API LIVE🚀");
